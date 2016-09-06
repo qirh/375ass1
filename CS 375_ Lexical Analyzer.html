@@ -1,0 +1,230 @@
+
+<!-- saved from url=(0052)https://www.cs.utexas.edu/users/novak/asg-lexan.html -->
+<html><!--  asg-lexan.html          G. Novak           22 Aug 16    --><!--    --><head><meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+  <title>CS 375:  Lexical Analyzer</title>
+</head>
+<body>
+
+<h2>CS 375:  Lexical Analyzer</h2>
+
+<h3>Due: September 12, 2016.</h3>
+<p>
+Write a lexical analyzer for Pascal.
+The program may be written in C or in Lisp.
+</p><p>
+Input to the Lexical Analyzer is obtained by calling functions
+that get input characters.  <tt>getchar()</tt> returns the next character
+from the input and moves the character pointer; <tt>peekchar()</tt>
+returns the next character without moving the pointer.
+<tt>peek2char()</tt> returns the second character without
+moving the pointer.  These functions are provided.
+</p><p>
+The Lexical Analyzer is called as the function <tt>gettoken()</tt> (provided
+in the file <tt> scanner.c</tt>); its output is one token.  A token record
+contains the following fields (plus some pointers, to be used later):
+
+</p><ul>
+<li><tt>tokentype</tt> is an integer (<tt>0..5</tt>) (in Lisp, a symbol)
+ denoting the type of the token: 
+<tt>OPERATOR DELIMITER RESERVED IDENTIFIERTOK STRINGTOK NUMBERTOK</tt> .
+
+</li><li><tt>datatype</tt> is an integer (in Lisp, a symbol) that denotes the type
+of basic data: <tt>INTEGER REAL STRINGTYPE BOOLETYPE POINTER</tt> .
+
+</li><li><tt>tokenval</tt> contains the value of the token.  For C, use
+the subfields <tt>whichval</tt>, <tt>stringval</tt>, <tt>intval</tt>,
+and <tt>realval</tt>; the storage for these is overlapped, since
+only one of them will be used in a given kind of token.
+</li></ul>
+
+<h3>White Space and Comments:</h3>
+<p>
+Blanks, tabs, ends of lines, and comments are considered to be separators;
+the Lexical Analyzer consumes (skips over) these, but does not return
+anything for them.  Comments are contained between the characters
+ <tt>{</tt> and <tt>}</tt> , or between <tt>(*</tt> and <tt>*)</tt> .
+The first occurrence of the terminating character(s) ends the comment;
+comments cannot be nested.
+</p><p>
+
+</p><h3>Operators and Delimiters:</h3>
+<p>
+Operators are as follows: <tt> +  -  *  /  :=  =  &lt;&gt;  &lt;  &lt;=  &gt;=  &gt;  ^ .</tt>
+</p><p>
+The following Reserved Words are treated as Operators:
+<tt> and  or  not  div  mod  in</tt>
+</p><p>
+Delimiters are: <tt>,  ;  : (  )  [  ]  .. </tt>
+</p><p>
+The result returned for an Operator or Delimiter is:
+</p><p>
+<table>
+<tbody><tr> <td><tt>tokentype</tt>: </td><td> <tt>OPERATOR</tt>
+ (<tt>0</tt>) or <tt>DELIMITER</tt> (<tt>1</tt>)</td></tr>
+<tr> <td><tt>whichval</tt>:    </td><td> integer denoting which operator
+ (<tt>1..19</tt>) or delimiter (<tt>1..8</tt>).</td></tr>
+</tbody></table>
+
+</p><h3>Reserved words:</h3>
+
+The Reserved Words of Pascal (other than Operators) are:
+<pre>array       downto    function   of           repeat    until
+begin       else      goto       packed       set       var  
+case        end       if         procedure    then      while
+const       file      label      program      to        with 
+do          for       nil        record       type
+</pre>
+The result returned for a Reserved Word is:
+
+<table>
+<tbody><tr> <td><tt>tokentype</tt>: </td><td> <tt>RESERVED</tt> (<tt>2</tt>)</td></tr>
+<tr> <td><tt>whichval</tt>:  </td><td> integer denoting which reserved word (<tt>1..29</tt>)</td></tr>
+</tbody></table>
+
+<h3>Identifiers:</h3>
+
+Identifiers begin with a letter, followed by any number of letters or digits.
+We will assume that only the first 15 characters of the identifier name
+are significant; longer identifiers should be truncated to 15 characters.
+We will assume that the case of letters is left as specified; our input
+will use lower-case letters.
+<p>
+The result returned for an Identifier is:
+
+<table>
+<tbody><tr> <td><tt>tokentype</tt>: </td><td> <tt>IDENTIFIERTOK</tt> (<tt>3</tt>)</td></tr>
+<tr> <td><tt>stringval</tt>:      </td><td> string (identifier name)</td></tr>
+</tbody></table>
+
+
+</p><h3>Strings:</h3>
+
+Strings are enclosed by <tt>'</tt> characters.  The character <tt>'</tt> may
+be included within a string by doubling it, as in the example <tt>'don''t'</tt>
+ .  For simplicity, we will assume that a string has at most 15 characters.
+<p>
+The result returned for a String is:
+
+<table>
+<tbody><tr> <td><tt>tokentype</tt>: </td><td> <tt>STRINGTOK</tt> (<tt>4</tt>)</td></tr>
+<tr> <td><tt>stringval</tt>:      </td><td> string</td></tr>
+</tbody></table>
+
+
+</p><h3>Unsigned Numbers:</h3>
+<p>
+Unsigned Numbers must begin with a digit; if there is a decimal point,
+it must be followed by at least one digit.  A number may be followed by
+a signed decimal exponent, in which case it is floating-point (whether
+there is a decimal point or not).
+</p><p>
+The lexical analyzer must convert a number to internal numeric form.
+Care must be taken to ensure that the result is numerically accurate
+and that errors such as numeric overflow are detected.  Challenging
+examples are included in the test data; correct handling of
+these examples will be a grading criterion.  If there is an error, your
+program should print an error message and return a number token of the
+correct type (integer or real); the value of the number will not matter.
+
+</p><p>
+The result returned for a Number is:
+
+<table>
+<tbody><tr> <td><tt>tokentype</tt>: </td><td> <tt>NUMBERTOK</tt> (<tt>5</tt>)</td></tr>
+<tr> <td><tt>datatype</tt>:  </td><td> integer denoting type: <tt>INTEGER</tt>
+ or <tt>REAL</tt></td></tr>
+<tr> <td><tt>tokenval</tt>:  </td><td> numeric value in internal form. 
+ For C, use <tt>intval</tt> and <tt>realval</tt></td></tr>
+</tbody></table>
+
+</p><h3>Testing:</h3>
+
+Test your program on the files <tt>graph1.pas</tt> and <tt>scantst.pas</tt> .
+<!-- Hand in listings of your program and the output for these test files. -->
+
+<h3>Reference:</h3>
+
+Jensen, K. and Wirth, N., <i>Pascal User Manual and Report</i>,
+Springer-Verlag, 1976.
+
+<h3>Notes for C:</h3>
+
+Use the <tt>makefile</tt> in the directory <tt>/projects/cs375/</tt>.
+A file <tt>lex1.c</tt> containing program stubs for this assignment
+is provided; you may use this file as the starting point for your program.
+Use <tt>make lex1</tt> to compile this program:
+
+<pre>mkdir test
+cd test
+cp /projects/cs375/* .
+make lex1
+lex1
+123 45678 12
+17 444
+^C              to quit
+</pre>
+
+Copy <tt>lex1.c</tt>
+to <tt>lexanc.c</tt> and extend <tt>lexanc.c</tt> for this assignment; use
+<tt>make lexanc</tt> to compile your program.  The file <tt>lexandr.c</tt>
+contains a driver program to call <tt>gettoken()</tt> and print the results.
+The file <tt>scanner.c</tt> contains
+functions <tt>peekchar</tt> and <tt>peek2char</tt> and some utility functions.
+The function <tt>getchar</tt> is part of the <tt>stdio.h</tt> package.
+Use the definitions in <tt>token.h</tt> and <tt>lexan.h</tt>, which definine
+the <tt>TOKEN</tt> structure, operator numbers etc.
+The file <tt>printtoken.c</tt>
+contains the function <tt>talloc</tt>, which makes a new token data structure
+and returns a pointer to it.  You probably should not change the files
+<tt>scanner.c</tt> and <tt>printtoken.c</tt>.  Note that the tables
+in <tt>printtoken.c</tt> are intended for printing and may not be what
+you need for the lexical
+analyzer; copy and modify these tables to make new ones if you wish.
+<p>
+Note that a string in C is an array of characters terminated by a zero
+<tt>'\0'</tt> character; you should terminate all strings this way.
+A string cannot just be assigned as in Java; it must be copied
+in a loop one character at a time, or you can use <tt> strcpy(to,from)</tt>.
+</p><p>
+You must perform scanning at the character level; you are <i>not</i> allowed
+to use C library functions that do the work of the lexical analyzer, such as
+<tt>sscanf</tt>.  However, you may use standard string library functions
+such as <tt>strcmp</tt> (string compare).
+
+</p><h3>Notes for Lisp:</h3>
+
+You should use Lisp only if you are already good at Lisp.  However, there
+is little risk in doing the first project in Lisp.
+<p>
+The file <tt>scanner.lsp</tt> contains the functions <tt>getchar</tt>,
+<tt>peekchar</tt>, and <tt>peek2char</tt>; these return <tt>NIL</tt>
+ at end-of-file.
+<tt>charclass</tt> determines the class of a character.
+Call the function <tt>read-file</tt> to read the input file, e.g.
+
+</p><pre>(read-file "/u/cs375/graph1.pas")
+</pre>
+
+After calling <tt>read-file</tt>, the call <tt>(test-scanner)</tt>
+will test your program on the file.
+The file <tt>tokendefs.lsp</tt> contains macro definitions for tokens and
+the functions <tt>talloc</tt> (which makes a token structure) and
+<tt>printtoken</tt>.
+<p>
+Character constants are written with a <tt>#\</tt> prefix, e.g. the character
+<tt>*</tt> is written <tt>#\*</tt> ; the blank space is written
+<tt>#\Space</tt> .
+</p><p>
+Useful Common Lisp functions: <tt>char-code</tt>,
+<tt>make-string</tt>, <tt>char-downcase</tt>, <tt>char=</tt>, <tt>string=</tt>.
+</p><p>
+Other useful files: <tt>number.lsp</tt> &nbsp; <tt>while.lsp</tt>
+</p><p>
+You must perform scanning at the character level; you are <i>not</i> allowed to
+use Lisp functions that do the work of the lexical analyzer, such as
+<tt>intern</tt> or <tt>read-from-string</tt>.
+
+
+
+
+</p></body></html>
