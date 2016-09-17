@@ -27,6 +27,7 @@
 
 #define DEBUGGETTOKEN 0
 
+
 TOKEN talloc();
 int peekchar();
 int peek2char();
